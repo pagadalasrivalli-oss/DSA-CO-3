@@ -1,0 +1,97 @@
+import java.util.*;
+
+// Edge class
+class Edge implements Comparable<Edge> {
+    String src, dest;
+    int weight;
+
+    Edge(String s, String d, int w) {
+        src = s;
+        dest = d;
+        weight = w;
+    }
+
+    public int compareTo(Edge other) {
+        return this.weight - other.weight;
+    }
+}
+
+// Union-Find (Disjoint Set)
+class DisjointSet {
+    Map<String, String> parent = new HashMap<>();
+
+    void makeSet(String node) {
+        parent.put(node, node);
+    }
+
+    String find(String node) {
+        if (!parent.get(node).equals(node)) {
+            parent.put(node, find(parent.get(node))); // path compression
+        }
+        return parent.get(node);
+    }
+
+    void union(String u, String v) {
+        String rootU = find(u);
+        String rootV = find(v);
+        if (!rootU.equals(rootV)) {
+            parent.put(rootU, rootV);
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+
+        // Stations
+        String[] stations = {"DEL", "BPL", "MUM", "NGP", "CHN", "HYD"};
+
+        // Edges (given data)
+        List<Edge> edges = new ArrayList<>();
+        edges.add(new Edge("DEL", "BPL", 700));
+        edges.add(new Edge("DEL", "MUM", 1400));
+        edges.add(new Edge("BPL", "MUM", 800));
+        edges.add(new Edge("BPL", "NGP", 350));
+        edges.add(new Edge("MUM", "NGP", 850));
+        edges.add(new Edge("NGP", "HYD", 500));
+        edges.add(new Edge("NGP", "CHN", 1100));
+        edges.add(new Edge("HYD", "CHN", 600));
+
+        // Step 1: Sort edges
+        Collections.sort(edges);
+
+        // Initialize DSU
+        DisjointSet ds = new DisjointSet();
+        for (String s : stations) {
+            ds.makeSet(s);
+        }
+
+        int totalCost = 0;
+        List<Edge> mst = new ArrayList<>();
+
+        System.out.println("Sorted Edges & Decisions:");
+
+        // Step 2: Kruskal
+        for (Edge e : edges) {
+            String root1 = ds.find(e.src);
+            String root2 = ds.find(e.dest);
+
+            if (!root1.equals(root2)) {
+                ds.union(e.src, e.dest);
+                mst.add(e);
+                totalCost += e.weight;
+                System.out.println(e.src + "-" + e.dest + " (" + e.weight + ") → ACCEPT");
+            } else {
+                System.out.println(e.src + "-" + e.dest + " (" + e.weight + ") → REJECT");
+            }
+        }
+
+        // Final MST
+        System.out.println("\nFinal MST:");
+        for (Edge e : mst) {
+            System.out.println(e.src + " - " + e.dest + " : " + e.weight);
+        }
+
+        System.out.println("\nTotal Cost: " + totalCost);
+    }
+}
